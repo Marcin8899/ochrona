@@ -25,9 +25,9 @@ app.config["JWT_TOKEN_LOCATION"] = 'cookies'
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 
 config = {
-        'user': 'root',
-        'password': 'root',
-        'host': 'db',
+        'user': "root",
+        'password': "root",
+        'host': "db",
         'port': 3306
     }
 app.secret_key = os.environ.get(SECRET_KEY)
