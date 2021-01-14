@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <title>Notatki</title>
+        <meta charset="utf-8">
+        <link href="../../styles/style.css" rel="stylesheet" type="text/css">
+        <script src="../../scripts/note.js"></script>
+    </head>
+    <body>
+        <header>
+            <h2> Notatki </h2>
+        </header>
+        <div class="topnav">
+            <a class="active" href="/my/">Moje notatki</a>
+            <a href="/notes/">Nowa</a>
+            <a href="/public/">Publiczne</a>
+            <a href="/shared/">Udostępnione</a>
+            <a href="/logout/">Wyloguj się</a>
+          </div>
+                
+        <section>
+            <h2>Moje notatki </h2>
+            <ul>
+                    <li><h3><a href="/my/{{note.id}}">{{ note.name }}</a></h3></li>
+                    {{note.note}}
+                    <br>
+                    {% if note.info == "Notatka zaszyfrowana" %}
+                    <br>
+                        <form id="decrypt-form">
+                            <input id = "password" type="password" placeholder="Podaj hasło"/>
+                            <button id = "decrypt" class="share-button">Odszyfruj</button>
+                        </form>
+                    {% endif %}
+                    
+                    <br>
+                    <form id="share-form">
+                        <input type="text" id="user" placeholder="Login innego użytkownika"/>
+                        <button id = "share" class="share-button">Udostępnij</button>
+                        <br>
+                    </form>
+            </ul>
+        </section>
+    </body>
+</html>

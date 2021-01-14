@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <title>Notatki</title>
+        <meta charset="utf-8">
+        <link href="../styles/style.css" rel="stylesheet" type="text/css">
+        <script src="../scripts/password.js"></script>
+
+    </head>
+    <body>
+        <header>
+            <h2> Notatki </h2>
+        </header>
+        <div class="topnav">
+            <a href="/my/">Moje notatki</a>
+            <a class="active" href="/notes/">Nowa</a>
+            <a href="/public/">Publiczne</a>
+            <a href="/shared/">Udostępnione</a>
+            <a href="/logout/">Wyloguj się</a>
+          </div>
+        <section>
+
+            <h3>Dodaj notatkę</h3>
+            <form action="https://localhost:8080/notes/" method="POST" id="registration-form" class="registration-form">
+                <div class="registration-div">
+                    <label class="registration-label" for="name">Nazwa notatki</label>
+                    <br>
+                    <input class="registration-input" id="name" type="text" name="name"/>
+                </div>
+                
+                <div class="registration-div">
+                    <label class="registration-label" for="note">Treść</label>
+                    <br>
+                    <textarea class="registration-input" id="note" type="text" name="note" cols=120 rows=10></textarea>
+                </div>
+
+                <div class="registration-div">
+                    <label class="container">Szyfrowana
+                        <input type="checkbox" id="check" checked="checked" name="check" onclick="myFunction()">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+                <p id="text" style="display:none">Poniższe pole pozostaw puste</p>    
+                <div class="registration-div">
+                    <label class="registration-label" for="password" >Hasło</label>
+                    <br>
+                    <input class="registration-input" id="password" type="password" name="password"/>
+                </div >  
+
+                
+
+                <div class="registration-div">
+                    <label class="container">Publiczna
+                        <input type="checkbox" id="public" name="public">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+
+                <input class="submit-button" id="button-log-form" type="submit" value="Zapisz"/>  {{info}}
+            </form>
+            
+        </section>
+
+        <footer>
+            <p class="footer-inline left">&copy; Marcin Baranowski 299234</p>
+        </footer>
+    </body>
+</html>

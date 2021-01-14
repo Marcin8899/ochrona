@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <title>Notatki</title>
+        <meta charset="utf-8">
+        <link href="../styles/style.css" rel="stylesheet" type="text/css">
+        <script src="../scripts/registration.js"></script>
+
+    </head>
+    <body>
+        <header>
+            <h2> Notatki </h2>
+        </header>
+        <div class="topnav">
+            <a href="/login/">Logowanie</a>
+            <a class="active" href="/registration/">Rejestracja</a>
+        </div>
+        <section>
+
+            <h3>Zarejestruj się</h3>
+            <!-- <form action="https://localhost:8080/register/" method="POST" id="registration-form" class="registration-form">
+            -->
+            <form id="registration-form" name="registration-form" class="registration-form">
+                <div class="registration-div">
+                    <label class="registration-label" for="login">Login</label>
+                    <br>
+                    <i class="fa fa-user icon"></i>
+                    <input class="registration-input" id="login" type="text" name="login"/>
+                </div>
+                
+                <div class="registration-div">
+                    <label class="registration-label" for="password" >Hasło</label>
+                    <br>
+                    <input class="registration-input" id="password" type="password" name="password"/>
+                </div >    
+
+                <div class="registration-div">
+                    <label class="registration-label" for="re-password" >Powtórz hasło</label>
+                    <br>
+                    <input class="registration-input" id="re-password" type="password" name="re-password"/>
+                </div >           
+                
+                <div class="registration-div">
+                    <label class="registration-label" for="mail" >E-amil </label>
+                    <br>
+                    <input class="registration-input" id="mail" type="text" name="mail"/>
+                </div >     
+                
+                <input class="submit-button" id="button-reg-form" type="submit" value="Zarejestruj"/> 
+                
+            </form>
+        
+        </section>
+
+        <footer>
+            <p class="footer-inline left">&copy; Marcin Baranowski 299234</p>
+        </footer>
+    </body>
+</html>

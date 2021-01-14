@@ -1,0 +1,5 @@
+flask
+flask-jwt-extended
+pyopenssl
+pycrypto
+mysql-connector

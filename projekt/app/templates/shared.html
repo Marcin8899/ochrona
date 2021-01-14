@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <title>Notatki</title>
+        <meta charset="utf-8">
+        <link href="../styles/style.css" rel="stylesheet" type="text/css">
+
+    </head>
+    <body>
+        <header>
+            <h2> Notatki </h2>
+        </header>
+        <div class="topnav">
+            <a href="/my/">Moje notatki</a>
+            <a href="/notes/">Nowa</a>
+            <a href="/public/">Publiczne</a>
+            <a class="active" href="/shared/">Udostępnione</a>
+            <a href="/logout/">Wyloguj się</a>
+        </div>
+        <section>
+            <h2> Notatki, które ktoś Ci udostępnił notatki </h2>
+            <ul>
+                {% for note in notes %}
+                    <li><h3>{{ note.name }}</h3></li>
+                    {{note.note}}
+                    <br><br>
+                    {{note.info}}
+                    <br>
+                    Autor: {{note.author}}
+                    <br>
+                {% endfor %}
+            </ul>
+        </section>
+    </body>
+</html>

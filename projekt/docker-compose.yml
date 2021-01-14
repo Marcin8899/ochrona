@@ -1,0 +1,23 @@
+version: "3"
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: ./app/Dockerfile
+    ports: ["8080:8080"]
+    volumes: [./app:/app]
+    environment:
+      FLASK_ENV: development
+      LOGIN_JWT_SECRET: $LOGIN_JWT_SECRET
+  db:
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST: 0.0.0.0
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+    volumes:
+      - ./db/volume:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/1.sql

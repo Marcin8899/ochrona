@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <title>Notatki</title>
+        <meta charset="utf-8">
+        <link href="../styles/style.css" rel="stylesheet" type="text/css">
+        <script src="../scripts/login.js"></script>
+
+    </head>
+    <body>
+        <header>
+            <h2> Notatki </h2>
+        </header>
+        <div class="topnav">
+            <a class="active" href="/login/">Logowanie</a>
+            <a href="/register/">Rejestracja</a>
+        </div>
+        <section>
+
+            <h3>Zaloguj się</h3>
+            <form  id="registration-form" class="registration-form">
+                <div class="registration-div">
+                    <label class="registration-label" for="login">Login</label>
+                    <br>
+                    <input class="registration-input" id="login" type="text" name="login"/>
+                </div>
+
+                <div class="registration-div">
+                    <label class="registration-label" for="password" >Hasło</label>
+                    <br>
+                    <input class="registration-input" id="password" type="password" name="password"/>
+                </div >           
+                
+                <input class="submit-button" id="button-log-form" type="submit" value="Zaloguj"/>     
+
+            </form>
+        
+        </section>
+
+        <footer>
+            <p class="footer-inline left">&copy; Marcin Baranowski 299234</p>
+        </footer>
+    </body>
+</html>
