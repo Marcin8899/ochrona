@@ -139,7 +139,10 @@ document.addEventListener('DOMContentLoaded', function (event) {
             id = "button-reg-form";
             let correctElem = prepareWarning("correct", " Zarejestrowano!");
             appendAfterElem(id, correctElem);
-        } else {
+        } else if (status === 406) {
+            window.location.replace(URL + "wrong-data/");
+        }
+        else{
             alert("Błędne dane")
         }
     }

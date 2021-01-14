@@ -21,23 +21,23 @@
         <section>
             <h2>Moje notatki </h2>
             <ul>
-                    <li><h3><a href="/my/{{note.id}}">{{ note.name }}</a></h3></li>
-                    {{note.note}}
-                    <br>
-                    {% if note.info == "Notatka zaszyfrowana" %}
-                    <br>
-                        <form id="decrypt-form">
-                            <input id = "password" type="password" placeholder="Podaj hasło"/>
-                            <button id = "decrypt" class="share-button">Odszyfruj</button>
-                        </form>
-                    {% endif %}
-                    
-                    <br>
-                    <form id="share-form">
-                        <input type="text" id="user" placeholder="Login innego użytkownika"/>
-                        <button id = "share" class="share-button">Udostępnij</button>
-                        <br>
+                <li><h3><a href="/my/{{note.id}}/">{{ note.name }}</a></h3></li>
+                {{note.note}}
+                <br>
+                {% if note.info == "Notatka zaszyfrowana" %}
+                <br> 
+                    <form action="/decrypt/{{note.id}}/" method="POST" id="decrypt-form">
+                        <input id = "password" type="password" name="password" placeholder="Podaj hasło"/>
+                        <button id = "decrypt" class="share-button">Odszyfruj</button>
                     </form>
+                {% endif %}
+                
+                <br>
+                <form id="share-form">
+                    <input type="text" id="user" placeholder="Login innego użytkownika"/>
+                    <button id = "share" class="share-button">Udostępnij</button>
+                    <br>
+                </form>
             </ul>
         </section>
     </body>

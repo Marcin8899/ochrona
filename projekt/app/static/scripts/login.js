@@ -39,8 +39,10 @@ document.addEventListener('DOMContentLoaded', function (event) {
         if (status === 200) {
             console.log("OK");
             window.location.replace(URL + "my/");
-        } else {
-            window.location.replace(URL + "register/");
+        } else if(status=== 400){
+            window.location.replace(URL + "wrong-password/");
+        } else{
+            window.location.replace(URL + "wrong-data/");
         }
     }
 

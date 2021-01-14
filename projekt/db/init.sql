@@ -32,4 +32,6 @@ CREATE TABLE last_login(
 );
 
 
-INSERT INTO user(nickname, password_hash, mail) VALUES ("test","cokolwiek","mail");
+INSERT INTO user(nickname, password_hash, mail) VALUES ("test","3875034e17855bac03a3cc9e107b1d28a9b44313d381c3335588525b4e70b551","mail@gmail.com");
+INSERT INTO user(nickname, password_hash, mail) VALUES ("user","8b4d37bd90dd4f2082d053b763c18c283aae7529809f6d469b514697de334862","mail1@gmail.com");
+INSERT INTO user(nickname, password_hash, mail) VALUES ("test2","a4b6bbb952f1783dbcb64e198979c151106fcb932532f67325ffe15856afdc61","mail2@gmail.com");

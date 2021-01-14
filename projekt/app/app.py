@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, render_template, request, jsonify, make_response, abort
+from flask import Flask, render_template, request, jsonify, make_response, abort, session
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, set_access_cookies, unset_jwt_cookies, get_jwt_identity
 from datetime import datetime
 from Crypto.Cipher import ARC4
@@ -11,8 +11,6 @@ import math
 import time
 import mysql.connector
 from const import * 
-from flask import session
-
 app = Flask(__name__, static_url_path="")
 jwt = JWTManager(app)
 log = app.logger
@@ -51,18 +49,24 @@ def register():
         repeated_password = request.form["re-password"]
         email = request.form["mail"]
 
+
+        if( check_field(login) or check_field(password) or check_field(repeated_password) or check_field(email)):
+            response = make_response( jsonify( {"message": "Niezezpieczne znaki"} ), 406)
+            response.headers["Content-Type"] = "application/json"
+            return response 
+
         if(repeated_password != password):
             return "Hasła są różne", 400
-        log.debug("1")
+
         cursor.execute("USE notes")
-        log.debug("1")
+
         query = ("SELECT * FROM user WHERE nickname = %(login)s")
         cursor.execute(query, {'login' : login})
         data = cursor.fetchall()
-        log.debug(data)
+
         if(len(data) != 0):
             return "Login zajęty", 400
-        log.debug("3")
+
 
         query = ("SELECT * FROM user WHERE mail = %(email)s")
         cursor.execute(query, {'email' : email})
@@ -73,7 +77,7 @@ def register():
             return response
 
         H = entropy(password)
-        log.debug(H)
+        log.debug("Entropy: " + str(H))
 
         if(H<3):
             return "Hasło jest za słabe", 400
@@ -93,7 +97,6 @@ def register():
         connection.commit()
         cursor.execute("SELECT * FROM user")
         data = cursor.fetchall()
-        log.debug(data)
         return "OK", 201
     else:
         return render_template("registration.html"), 200
@@ -106,7 +109,13 @@ def login():
 
         login = request.form["login"]
         password = request.form["password"]
-        #password = request.form["password"].encode("utf-8")
+
+        #checking field
+
+        if( check_field(login)):
+            response = make_response( jsonify( {"message": "Wrong username or password"} ), 406)
+            response.headers["Content-Type"] = "application/json"
+            return response 
         
         cursor.execute("USE notes")
 
@@ -124,7 +133,7 @@ def login():
         corr_password = data[0][0]
         if(corr_password == password_hash):
             update_ip(ip, 0)
-            access_token = create_access_token(identity = login)
+            access_token = create_access_token(identity = hashlib.sha512(login.encode("utf-8")).hexdigest())
             response = make_response( jsonify( {"message": "OK"} ), 200)
             response.headers["Content-Type"] = "application/json"
             set_access_cookies(response, access_token)
@@ -158,6 +167,9 @@ def notes():
         password = request.form["password"]
         author = check_user()
 
+        if( check_field(name) or check_field(note) or check_field(password) ):
+            return render_template("wrong_data.html")
+
         if(encrypted):
             H = entropy(password)
             if(H < 3.0):
@@ -165,13 +177,6 @@ def notes():
             note = encrypt_note(note, password)        
         else:
             note = bytes(note, 'utf-8')
-
-        log.debug(name)
-        log.debug(note)
-        log.debug(public)
-        log.debug(encrypted)
-        log.debug(password)
-        log.debug(author)
         
         add_note = ('''INSERT INTO note
             (author, name, note, public, encrypted) 
@@ -214,7 +219,6 @@ def public():
             'note': note,
             'info' : info
         })
-    log.debug(to_send)
     return render_template("public.html", notes = to_send)
 
 @app.route("/my/",  methods=[GET])
@@ -261,7 +265,6 @@ def one_note(note_id):
         'note': note,
         'info' : info,
     })
-    log.debug(to_send)
     return render_template("note.html", note = to_send)
 
 @app.route("/share/", methods=[POST])
@@ -270,6 +273,11 @@ def share():
     login = check_user()
     user = request.form["user"]
     note_id = request.form["note_id"]
+
+    if( check_field(user) or check_field(note_id)):
+        response = make_response( jsonify( {"message": "Niezezpieczne znaki"} ), 406)
+        response.headers["Content-Type"] = "application/json"
+        return response 
     sql = (''' SELECT * FROM note
             WHERE author = %(nickname)s   
             AND id = %(note_id)s''')
@@ -287,7 +295,7 @@ def share():
 
     cursor.execute("SELECT * FROM shared WHERE id = %(id)s",{'id': user + note_id})
     exists = cursor.fetchall()
-    log.debug(len(exists))
+
     if(len(exists) != 0):
         return "BAD", 400
 
@@ -322,7 +330,7 @@ def shared_notes():
     to_send = []
     for row in data:
         log.debug(row)
-        if(row[5] == 1):
+        if(row[6] == 1):
             info = "Notatka zaszyfrowana"
             note = row[4]
         else:
@@ -339,8 +347,9 @@ def shared_notes():
 @app.route("/decrypt/<int:note_id>/",  methods=[POST])
 @jwt_required
 def decrypt(note_id):
-
+    log.debug(request.form)
     password = request.form["password"]
+    #TODO 
 
     login = check_user()
     cursor.execute("USE notes")
@@ -349,7 +358,6 @@ def decrypt(note_id):
             AND id = %(note_id)s''')
     cursor.execute(sql, {'nickname': login, 'note_id': note_id})
     data = cursor.fetchall()
-    log.debug(data)
     if(len(data) == 0):
         return render_template("logout.html")
     data = data[0]
@@ -367,8 +375,15 @@ def decrypt(note_id):
         'info' : info,
     })
     log.debug(to_send["note"])
-    return jsonify({'note': to_send["note"]})
+    return render_template("note.html", note = to_send)
 
+@app.route("/wrong-password/", methods = [GET])
+def wrong_password():
+    return render_template("wrong_password.html")
+
+@app.route("/wrong-data/", methods = [GET])
+def wrong_data():
+    return render_template("wrong_data.html")
 
 def entropy(password):
     counter = {}
@@ -387,7 +402,6 @@ def hashpass(password):
     m = hashlib.sha256()
     for i in range(10):
         m.update(bytes(password,'utf-8'))
-        log.debug(m.hexdigest())
     return m.hexdigest()
 
 def encrypt_note(note, password):
@@ -433,18 +447,19 @@ def check_mark_on_bool(check):
     else:
         return False
 
-def sql_secure(dict):
-    for element in dict:
-        if(element == "("):
-            return False
-    return True
+def check_field(field):
+    for char in field:
+        if(char == "(" or char == ")" or char == "<" or char == ">"):
+            return True
+    return False
 
 
 def check_user():
     jwt_user = get_jwt_identity()
     flask_user = session['user']
-    if(jwt_user == flask_user):
-        return jwt_user
+    flask_user_hash = hashlib.sha512(flask_user.encode("utf-8")).hexdigest()
+    if(jwt_user == flask_user_hash):
+        return flask_user
     else:
         abort(401)
 
@@ -470,6 +485,7 @@ def server_error(error):
 
 @jwt.expired_token_loader
 def my_expired_token_callback(expired_token):
+    session.pop('user', None)
     return render_template('errors/401.html', error = "Żeton stracił ważność")
 
 if __name__ == "__main__":
