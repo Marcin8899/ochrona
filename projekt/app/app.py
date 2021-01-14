@@ -10,10 +10,13 @@ import logging
 import math
 import time
 import mysql.connector
+from flask_wtf.csrf import CSRFProtect
 from const import * 
 app = Flask(__name__, static_url_path="")
 jwt = JWTManager(app)
 log = app.logger
+
+csrf = CSRFProtect(app)
 
 TOKEN_EXPIRES_IN_SECONDS = 300
 

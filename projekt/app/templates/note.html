@@ -37,6 +37,7 @@
                     <input type="text" id="user" placeholder="Login innego użytkownika"/>
                     <button id = "share" class="share-button">Udostępnij</button>
                     <br>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 </form>
             </ul>
         </section>

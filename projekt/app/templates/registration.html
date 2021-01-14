@@ -47,7 +47,7 @@
                 </div >     
                 
                 <input class="submit-button" id="button-reg-form" type="submit" value="Zarejestruj"/> 
-                
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             </form>
         
         </section>

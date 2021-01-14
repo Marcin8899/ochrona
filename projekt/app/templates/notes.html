@@ -57,6 +57,7 @@
                 </div>
 
                 <input class="submit-button" id="button-log-form" type="submit" value="Zapisz"/>  {{info}}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             </form>
             
         </section>
