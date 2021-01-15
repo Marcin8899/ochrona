@@ -11,20 +11,24 @@
             <h2> Notatki </h2>
         </header>
         <div class="topnav">
-            <a class="active" href="/my/">Moje notatki</a>
+            <a href="/my/">Moje notatki</a>
             <a href="/notes/">Nowa</a>
             <a href="/public/">Publiczne</a>
             <a href="/shared/">Udostępnione</a>
             <a href="/logout/">Wyloguj się</a>
-            <a href="/files/">Pliki</a>
+            <a class="active" href="/files/">Pliki</a>
           </div>
         <section>
-            <h2>Moje notatki </h2>
-            <ul>
-                {% for note in notes %}
-                    <li><h3><a href="/my/{{note.id}}">{{ note.name }}</a></h3></li>
-                {% endfor %}
-            </ul>
+            <h2>Dodaj plik </h2>
+            <form  enctype = "multipart/form-data"  action="/files/" method="POST">
+                <input type="file" name="file">
+                <input class="submit-button"  type="submit"> {{info}}
+            </form>
+            <h2>Twoje pliki </h2>  
+            {% for file in my_files %}
+                <li><a href="/files/{{ file[1] }}">{{ file[1] }}</a></li>
+                <br>
+            {% endfor %}
         </section>
     </body>
 </html>

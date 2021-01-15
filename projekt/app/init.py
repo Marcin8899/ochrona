@@ -35,6 +35,13 @@
 # );
 # ''')
 # cursor.execute('''
+# CREATE TABLE file(
+#     uuid VARCHAR(60) NOT_NULL,
+#     author VARCHAR(40) NOT NULL,
+#     name VARCHAR(100) NOT NULL
+# );
+# ''')
+# cursor.execute('''
 # INSERT INTO user(nickname, password_hash, mail) VALUES ("test","3875034e17855bac03a3cc9e107b1d28a9b44313d381c3335588525b4e70b551","mail@gmail.com");
 # ''')
 # connection.commit()

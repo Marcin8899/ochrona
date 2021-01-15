@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, render_template, request, jsonify, make_response, abort, session
+from flask import Flask, render_template, request, jsonify, make_response, abort, session, flash, send_file
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, set_access_cookies, unset_jwt_cookies, get_jwt_identity
 from datetime import datetime
 from Crypto.Cipher import ARC4
@@ -12,20 +12,22 @@ import time
 import mysql.connector
 from flask_wtf.csrf import CSRFProtect
 from const import * 
+import uuid
 app = Flask(__name__, static_url_path="")
 jwt = JWTManager(app)
 log = app.logger
 
-csrf = CSRFProtect(app)
+#csrf = CSRFProtect(app)
 
 TOKEN_EXPIRES_IN_SECONDS = 300
 
 SECRET_KEY = "LOGIN_JWT_SECRET"
-
+UPLOAD_FOLDER = 'files/'
 app.config["JWT_SECRET_KEY"] = os.environ.get(SECRET_KEY)
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = TOKEN_EXPIRES_IN_SECONDS
 app.config["JWT_TOKEN_LOCATION"] = 'cookies'
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 config = {
         'user': "root",
@@ -107,6 +109,7 @@ def register():
 @app.route("/login/",  methods=[GET,POST])
 def login():
     if request.method == POST:
+        log.debug("logowanie")
         time.sleep(2)
         ip = request.remote_addr
 
@@ -350,7 +353,6 @@ def shared_notes():
 @app.route("/decrypt/<int:note_id>/",  methods=[POST])
 @jwt_required
 def decrypt(note_id):
-    log.debug(request.form)
     password = request.form["password"]
     #TODO 
 
@@ -379,6 +381,69 @@ def decrypt(note_id):
     })
     log.debug(to_send["note"])
     return render_template("note.html", note = to_send)
+
+@app.route("/files/", methods = [POST,GET])
+@jwt_required
+def files():
+    cursor.execute("USE notes")
+    sql = ('''SELECT * FROM files 
+        WHERE author = %(author)s''')
+    data = {
+        'author': check_user()
+    }
+    cursor.execute(sql,data)
+    my_files = cursor.fetchall()
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return render_template("files.html", info = "  Brak pliku", my_files = my_files)
+        file = request.files['file']
+        if file.filename == '':
+            return render_template("files.html", info = "  Brak pliku", my_files = my_files )
+        extension = file.filename.rsplit('.', 1)[1].lower()
+        filename = uuid.uuid4().hex + "." + extension
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+        
+        sql = ('''SELECT * FROM files 
+        WHERE name = %(name)s''')
+        data = {
+            'name': file.filename
+        }
+        cursor.execute(sql, data)
+        data_sql = cursor.fetchall()
+        if(len(data_sql) != 0):
+            return render_template("files.html", info = "  Ten plik już został dodany", my_files = my_files)
+        
+        data = {
+            'author': check_user(),
+            'name': file.filename
+        }
+        sql = (''' INSERT INTO files VALUES
+        (%(author)s, %(name)s )''')
+
+        cursor.execute(sql, data)
+        connection.commit()
+        return render_template("files.html", my_files = my_files)
+    else:
+        return render_template("files.html", my_files = my_files)
+@app.route("/files/<string:name>/", methods = [GET])
+@jwt_required
+def download_file(name):
+
+    sql = ('''SELECT * FROM files 
+        WHERE author = %(author)s AND name = %(name)s''')
+    data = {
+        'author': check_user(),
+        'name': name
+    }
+    cursor.execute(sql, data)
+    data = cursor.fetchall()
+    if(len(data) == 0):
+        return render_template("files.html", info = " Nie można pobrać tego pliku")
+    filepath = app.config['UPLOAD_FOLDER'] + name
+    log.debug(name)
+    return send_file(filepath, as_attachment=True)
+
+
 
 @app.route("/wrong-password/", methods = [GET])
 def wrong_password():
