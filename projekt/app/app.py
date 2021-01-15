@@ -24,6 +24,7 @@ TOKEN_EXPIRES_IN_SECONDS = 300
 SECRET_KEY = "LOGIN_JWT_SECRET"
 UPLOAD_FOLDER = 'files/'
 app.config["JWT_SECRET_KEY"] = os.environ.get(SECRET_KEY)
+app.config["RESET_KEY"] = os.environ.get("RESET_KEY")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = TOKEN_EXPIRES_IN_SECONDS
 app.config["JWT_TOKEN_LOCATION"] = 'cookies'
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
@@ -32,7 +33,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 config = {
         'user': "root",
         'password': "root",
-        'host': "db",
+        'host': "db8",
         'port': 3306
     }
 app.secret_key = os.environ.get(SECRET_KEY)
@@ -48,14 +49,16 @@ def home():
 
 @app.route("/register/",  methods=[GET,POST])
 def register():
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
     if request.method == POST:
         login = request.form["login"]
         password = request.form["password"]
         repeated_password = request.form["re-password"]
         email = request.form["mail"]
-
-
-        if( check_field(login) or check_field(password) or check_field(repeated_password) or check_field(email)):
+        integral = request.form["inte"]
+        if( check_field(login) or check_field(password) or check_field(repeated_password) or check_field(email) or check_field(integral) ):
             response = make_response( jsonify( {"message": "Niezezpieczne znaki"} ), 406)
             response.headers["Content-Type"] = "application/json"
             return response 
@@ -70,14 +73,20 @@ def register():
         data = cursor.fetchall()
 
         if(len(data) != 0):
-            return "Login zajęty", 400
+            response = make_response( jsonify( {"message": "Błędne dane"} ), 400)
+            response.headers["Content-Type"] = "application/json"
+            return response
 
+        if(integral != '81'):
+            response = make_response( jsonify( {"message": "Błędne dane"} ), 400)
+            response.headers["Content-Type"] = "application/json"
+            return response
 
         query = ("SELECT * FROM user WHERE mail = %(email)s")
         cursor.execute(query, {'email' : email})
         data = cursor.fetchall()
         if(len(data) != 0):
-            response = make_response( jsonify( {"message": "E-mail zajęty"} ), 400)
+            response = make_response( jsonify( {"message": "Błędne dane"} ), 400)
             response.headers["Content-Type"] = "application/json"
             return response
 
@@ -108,15 +117,19 @@ def register():
 
 @app.route("/login/",  methods=[GET,POST])
 def login():
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
     if request.method == POST:
         log.debug("logowanie")
         time.sleep(2)
-        ip = request.remote_addr
-
+        
         login = request.form["login"]
         password = request.form["password"]
 
-        #checking field
+        if(login == "admin" or login == "root" or login == "master"):
+            log.warn("PRÓBA ZALOGOWANIA NA NIEOZWOLONE KONTA !!!!!!!!!!!!!")
+            log.warn("Wykonana z ip: " + str(ip) )
 
         if( check_field(login)):
             response = make_response( jsonify( {"message": "Wrong username or password"} ), 406)
@@ -138,6 +151,8 @@ def login():
 
         corr_password = data[0][0]
         if(corr_password == password_hash):
+            cursor.execute(" INSER INTO session_data %(user)s, %(ip)s", {'user': login, 'ip': ip})
+            connection.commit()
             update_ip(ip, 0)
             access_token = create_access_token(identity = hashlib.sha512(login.encode("utf-8")).hexdigest())
             response = make_response( jsonify( {"message": "OK"} ), 200)
@@ -165,6 +180,9 @@ def logout():
 @app.route("/notes/",  methods=[GET,POST])
 @jwt_required
 def notes():
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
     if(request.method == POST):
         name = request.form["name"]
         note = request.form["note"]
@@ -207,6 +225,9 @@ def notes():
 
 @app.route("/public/",  methods=[GET])
 def public():
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
     cursor.execute("USE notes")
     cursor.execute(''' SELECT * FROM note
                         WHERE public''')
@@ -230,6 +251,9 @@ def public():
 @app.route("/my/",  methods=[GET])
 @jwt_required
 def my_notes():
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
     login = check_user()
     cursor.execute("USE notes")
     sql = (''' SELECT * FROM note
@@ -248,6 +272,9 @@ def my_notes():
 @app.route("/my/<int:note_id>/",  methods=[GET])
 @jwt_required
 def one_note(note_id):
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
     login = check_user()
     cursor.execute("USE notes")
     sql = (''' SELECT * FROM note
@@ -276,6 +303,9 @@ def one_note(note_id):
 @app.route("/share/", methods=[POST])
 @jwt_required
 def share():
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
     login = check_user()
     user = request.form["user"]
     note_id = request.form["note_id"]
@@ -326,6 +356,9 @@ def share():
 @app.route("/shared/",  methods=[GET])
 @jwt_required
 def shared_notes():
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
     login = check_user()
     cursor.execute("USE notes")
     sql = (''' SELECT * FROM shared
@@ -353,6 +386,9 @@ def shared_notes():
 @app.route("/decrypt/<int:note_id>/",  methods=[POST])
 @jwt_required
 def decrypt(note_id):
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
     password = request.form["password"]
     #TODO 
 
@@ -385,6 +421,9 @@ def decrypt(note_id):
 @app.route("/files/", methods = [POST,GET])
 @jwt_required
 def files():
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
     cursor.execute("USE notes")
     sql = ('''SELECT * FROM files 
         WHERE author = %(author)s''')
@@ -425,9 +464,13 @@ def files():
         return render_template("files.html", my_files = my_files)
     else:
         return render_template("files.html", my_files = my_files)
+
 @app.route("/files/<string:name>/", methods = [GET])
 @jwt_required
 def download_file(name):
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
 
     sql = ('''SELECT * FROM files 
         WHERE author = %(author)s AND name = %(name)s''')
@@ -443,7 +486,41 @@ def download_file(name):
     log.debug(name)
     return send_file(filepath, as_attachment=True)
 
+@app.route("/reset/", methods = [GET,POST])
+def reset():
+    ip = request.remote_addr
+    if(check_ban(ip)):
+        return render_template("ban.html")
+    if request.method == POST:
+        corr_pass = app.config["RESET_KEY"]
+        log.debug(corr_pass)
+        corr_pass = "mail123"
+        login = request.form["login"]
+        password = request.form["password"]
+        code = request.form["code"]
 
+        if( check_field(code) or check_field(login) or check_field(password) ):
+            return render_template("wrong_data.html")
+
+        cursor.execute("USE notes")
+        cursor.execute(" SELECT * FROM user WHERE nickname = %(username)s",{'username': login})
+        data = cursor.fetchall()
+        if(len(data) == 0):
+            return render_template("reset.html", info = " Błędna nazwa użytkownika" )
+
+        if(entropy(password) < 3):
+            return render_template("reset.html", info = " Nowe hasło jest za słabe" )
+
+        if(corr_pass == code):
+            log.debug(password)
+            password = hashpass(password)
+            cursor.execute(" UPDATE user SET password_hash=%(password)s WHERE nickname = %(username)s",{'username': login, 'password':password})
+            connection.commit()
+            return render_template("reset.html", info = " Hasło zmienione" )
+        else:
+            return render_template("reset.html", info = " Błędny kod" )
+    else:
+        return render_template("reset.html")
 
 @app.route("/wrong-password/", methods = [GET])
 def wrong_password():
@@ -504,7 +581,7 @@ def update_ip(ip, to_add):
         else:
             bad_logins = data[0][1]
             bad_logins = bad_logins + 1
-            if(bad_logins == 5):
+            if(bad_logins == 10):
                 log.error("Ip zbanowane")
         cursor.execute(sql,{'bad_logins': bad_logins,'ip': ip})
         connection.commit()
@@ -530,6 +607,19 @@ def check_user():
         return flask_user
     else:
         abort(401)
+
+def check_ban(ip):
+    cursor.execute("USE notes")
+    cursor.execute("SELECT * from last_login WHERE ip = %(ip)s",{'ip':ip})
+    data = cursor.fetchall()
+    if(len(data) != 0):
+        bad_logins = data[0][1]
+        if(bad_logins == 10):
+            return True
+        else:
+            return False
+    else:
+        return False
 
 @app.errorhandler(400)
 def wrong_data(error):

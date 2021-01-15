@@ -38,7 +38,7 @@
 # CREATE TABLE file(
 #     uuid VARCHAR(60) NOT_NULL,
 #     author VARCHAR(40) NOT NULL,
-#     name VARCHAR(100) NOT NULL
+#     name VARCHAR(100) NOT NULL,
 # );
 # ''')
 # cursor.execute('''

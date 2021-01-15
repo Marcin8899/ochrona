@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
         var password = document.getElementById("password").value;
         var repeatedPassword = document.getElementById("re-password").value;
         var mail = document.getElementById("mail").value;
-
+        var inte = document.getElementById("inte").value;
         var toSend = true;
         removeWarning("loginWarning");
         removeWarning("passwordWarning");
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
             formData.set("mail", mail);
             formData.set("password", password);
             formData.set("re-password", repeatedPassword);
-            
+            formData.set("inte", inte);
             submitRegisterForm(formData);
             
         }

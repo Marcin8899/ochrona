@@ -218,3 +218,17 @@ footer {
     background-color: #48e44e;
     color: white;
   }
+
+
+  .btn {
+    background-color: #cf3708;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    margin: 15px 0px;
+    opacity: 0.5;
+    transition: 0.3s;
+  }
+  
+  .btn:hover {opacity: 1}
