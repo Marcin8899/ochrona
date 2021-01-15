@@ -600,10 +600,15 @@ def check_field(field):
 
 
 def check_user():
+    cursor.execute("USE notes")
+    
     jwt_user = get_jwt_identity()
     flask_user = session['user']
+    cursor.execute(" SELECT * FROM session_data WHERE user=%(user)s", {'user': flask_user })
+    data = cursor.fetchall()
+
     flask_user_hash = hashlib.sha512(flask_user.encode("utf-8")).hexdigest()
-    if(jwt_user == flask_user_hash):
+    if(jwt_user == flask_user_hash and len(data) != 0):
         return flask_user
     else:
         abort(401)
