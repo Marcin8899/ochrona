@@ -29,4 +29,4 @@ Aby nie dawać informacji np. o tym czy taki użytkownik istnieje, komunikat nie
 
 Aby użytkownik mógł cokolwiek zrobić wymagana jest sesja w bazie danych, poporawny żeton jtw oraz poprawna sesja Flask-a.
 
-Niestety nie udało mi się skonfigurować aplikacji aby działała na nginx-ie.
+Niestety nie udało mi się skonfigurować aplikacji aby działała na nginx-ie (okazało się to trudniejsze niż myślałem).

@@ -33,7 +33,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 config = {
         'user': "root",
         'password': "root",
-        'host': "db8",
+        'host': "db",
         'port': 3306
     }
 app.secret_key = os.environ.get(SECRET_KEY)
@@ -121,7 +121,7 @@ def login():
     if(check_ban(ip)):
         return render_template("ban.html")
     if request.method == POST:
-        log.debug("logowanie")
+        log.warn("logowanie nastąpi za 2 sekuny")
         time.sleep(2)
         
         login = request.form["login"]
@@ -151,7 +151,7 @@ def login():
 
         corr_password = data[0][0]
         if(corr_password == password_hash):
-            cursor.execute(" INSER INTO session_data %(user)s, %(ip)s", {'user': login, 'ip': ip})
+            cursor.execute(" INSERT INTO session_data VALUES (%(user)s, %(ip)s)", {'user': login, 'ip': str(ip)})
             connection.commit()
             update_ip(ip, 0)
             access_token = create_access_token(identity = hashlib.sha512(login.encode("utf-8")).hexdigest())
@@ -170,6 +170,12 @@ def login():
 
 @app.route("/logout/",  methods=[GET])
 def logout():
+    log.debug(check_user())
+    user = check_user()
+    flask_user = session['user']
+    cursor.execute("USE notes")
+    cursor.execute("DELETE FROM session_data WHERE user = %(user)s", {'user': flask_user})
+    connection.commit()
     response = make_response(render_template("logout.html"))
     unset_jwt_cookies(response)
     session.pop('user', None)
@@ -368,7 +374,6 @@ def shared_notes():
 
     to_send = []
     for row in data:
-        log.debug(row)
         if(row[6] == 1):
             info = "Notatka zaszyfrowana"
             note = row[4]
@@ -415,7 +420,6 @@ def decrypt(note_id):
         'note': decrypt_note(note,password),
         'info' : info,
     })
-    log.debug(to_send["note"])
     return render_template("note.html", note = to_send)
 
 @app.route("/files/", methods = [POST,GET])
@@ -483,7 +487,6 @@ def download_file(name):
     if(len(data) == 0):
         return render_template("files.html", info = " Nie można pobrać tego pliku")
     filepath = app.config['UPLOAD_FOLDER'] + name
-    log.debug(name)
     return send_file(filepath, as_attachment=True)
 
 @app.route("/reset/", methods = [GET,POST])
@@ -492,8 +495,7 @@ def reset():
     if(check_ban(ip)):
         return render_template("ban.html")
     if request.method == POST:
-        corr_pass = app.config["RESET_KEY"]
-        log.debug(corr_pass)
+
         corr_pass = "mail123"
         login = request.form["login"]
         password = request.form["password"]
@@ -512,7 +514,6 @@ def reset():
             return render_template("reset.html", info = " Nowe hasło jest za słabe" )
 
         if(corr_pass == code):
-            log.debug(password)
             password = hashpass(password)
             cursor.execute(" UPDATE user SET password_hash=%(password)s WHERE nickname = %(username)s",{'username': login, 'password':password})
             connection.commit()
@@ -568,7 +569,7 @@ def update_ip(ip, to_add):
     cursor.execute("USE notes")
     cursor.execute("SELECT * from last_login WHERE ip = %(ip)s",{'ip':ip})
     data = cursor.fetchall()
-    log.debug(data)
+
     if(len(data) == 0):
         cursor.execute("INSERT INTO last_login VALUES (%(ip)s, %(bad_logins)s)", {'ip':ip, 'bad_logins': to_add})
         connection.commit()
@@ -600,15 +601,16 @@ def check_field(field):
 
 
 def check_user():
+
     cursor.execute("USE notes")
     
     jwt_user = get_jwt_identity()
     flask_user = session['user']
     cursor.execute(" SELECT * FROM session_data WHERE user=%(user)s", {'user': flask_user })
     data = cursor.fetchall()
-
     flask_user_hash = hashlib.sha512(flask_user.encode("utf-8")).hexdigest()
-    if(jwt_user == flask_user_hash and len(data) != 0):
+
+    if(jwt_user == flask_user_hash or len(data) != 0):
         return flask_user
     else:
         abort(401)
